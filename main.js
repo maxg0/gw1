@@ -1,23 +1,13 @@
-
-$(document).ready(function(){
-	var shortage = 0.25;
-	var storage = 0.025;
-	var production = 5000;
-	var producing = 8;
-	
-	var changingCosts = [
-		[0, 324, 2786, 0, 4567, 3594, 949, 785],
-		[626, 0, 2332, 633, 596, 3594, 949, 3664],
-		[939, 487, 0, 949, 0, 3594, 949, 2452],
-		[0, 324, 2786, 0, 894, 3594, 949, 1346],
-		[626, 0, 2786, 633, 0, 3594, 949, 3664],
-		[3130, 1622, 3482, 2345, 0, 0, 3163, 0],
-		[939, 487, 1045, 657, 2979, 3594, 0, 3664],
-		[1734, 1622, 3482, 3163, 894, 0, 3163, 0],
+	var changeCost = [
+		[0,	324,	2786,	0,	4567,	3594,	949,	785],
+		[626,	0,	2332,	633,	596,	3594,	949,	3664],
+		[939,	487,	0,	949,	0,	3594,	949,	2452],
+		[0,	324,	2786,	0,	894,	3594,	949,	1346],
+		[626,	0,	2786,	633,	0,	3594,	949,	3664],
+		[3130,	1622,	3482,	2345,	0,	0,	3163,	0],
+		[939,	487,	1045,	657,	2979,	3594,	0,	3664],
+		[1734,	1622,	3482,	3163,	894,	0,	3163,	0]
 	];
-
-	var inventory = [ 2571, 1182, 3350, 1978, 1121, 3011, 1554, 2469];
-	
 	var demand = [
 		[0,0,3471,1115,0,1609,0,1182,0,2345,2327,0,1054,0,0,0,1477,0,1176,0,0,2222,1054,0,0,0,1477,0,0,1180],
 		[749,478,0,0,1931,0,0,0,512,0,0,0,0,647,0,1765,1449,0,0,0,0,0,0,789,0,1765,952,0,450,0],
@@ -28,4 +18,43 @@ $(document).ready(function(){
 		[1512,0,0,0,786,0,836,0,0,1211,0,0,725,0,0,2105,0,806,0,0,0,0,0,655,0,2045,0,780,0,0],
 		[0,0,1331,2898,1212,0,1045,816,0,0,454,0,0,3567,2554,578,1996,0,0,0,0,3755,0,0,2663,888,2100,0,0,0]
 	];
+function random(min, max){
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function createRandomDNA(){
+	var dna = {
+		production: [],
+		producing: []
+	}
+	for( var i = 0; i < 30; i++ ){
+		dna.production[i] = random(1,8);
+		dna.producing[i] = true;
+	}
+	console.log(demand);
+	return dna;
+}
+
+$(document).ready(function(){
+	var dna = createRandomDNA();
+	var shortage = 0.25;
+	var storage = 0.025;
+	var production = 5000;
+	var producing = 8;
+	var inventory = [ 2571, 1182, 3350, 1978, 1121, 3011, 1554, 2469];
+	var backlog   = [0,0,0,0,0,0,0,0];
+	var totalCosts = 0;
+	for(var t = 0; t < 30; t++){
+
+		// remove sales from inventory
+		for(var order = 0; order < demand.length; order++){
+			inventory[order] -= demand[order][t];
+		}
+		
+		// produce more
+		inventory[producing-1] += production;
+		
+		producing = dna.production[t];
+		console.log("producing: " + producing);
+		console.log(inventory);
+	}
 });
