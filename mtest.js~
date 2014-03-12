@@ -101,7 +101,6 @@ function createRandomDNA(){
 		production: [],
 		producing: [],
 	};
-	
 
 	for( var i = 0; i < 32; i++ ){
 		dna.production.push( genePool.pop() );
