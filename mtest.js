@@ -103,7 +103,7 @@ function createRandomDNA(){
 	};
 
 	for( var i = 0; i < 32; i++ ){
-		dna.production[i] = genePool.splice(random(0,31), 1);
+		dna.production.push( genePool.pop() );
 		dna.producing[i] = true;
 	}
 	return dna;
@@ -132,6 +132,7 @@ function search(limit, best){
 			checkpoint += limit/100;
 		}
 	}
+	postMessage(best);
 	return best;
 }
 
@@ -150,14 +151,12 @@ function createChild(father, mother){
 }
 
 
-self.addEventListener('message', function(e){
-	//postMessage(productionPool);
+$(document).ready(function(){
 	var dna = createRandomDNA();
-	var best = checkCost(dna);
-	var limit = parseInt(e.data);
-	var checkpoint = 0;
-	for(var s = 0; s < 100; s++){
-		best = search(limit/100, best);
+	console.log(dna.production);
+	var sum = 0;
+	for(var i = 0; i < 8; i++){
+		sum += productionPool[i];
 	}
-	postMessage(best);
-},500);
+});
+

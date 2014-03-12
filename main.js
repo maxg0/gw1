@@ -16,11 +16,10 @@ $(document).ready(function(){
 	var worker = new Worker("task.js");
 	var progress = 0;
 	worker.onmessage = function(e){
+		console.log(e.data);
 		$(".candidate").text(e.data.cost + " " + e.data.dna.production);
 		$(".progress-bar").val(++progress);
 	}
-
-
 	
 	$('.start-button').click(function(){
 		var limit = $('.limit').val();
