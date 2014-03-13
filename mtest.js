@@ -1,3 +1,28 @@
+
+
+function shuffle(array) {
+	var currentIndex = array.length
+		, temporaryValue
+		, randomIndex
+		;
+
+	//While there remain elements to shuffle...
+	while (0 !== currentIndex) {
+
+		//Pick a remaining element...
+		randomIndex = Math.floor(Math.random() * currentIndex);
+		currentIndex -= 1;
+
+		//And swap it with the current element.
+		temporaryValue = array[currentIndex];
+		array[currentIndex] = array[randomIndex];
+		array[randomIndex] = temporaryValue;
+	}
+
+	return array;
+}
+
+
 var changeCosts = [
 	[0,	324,	2786,	0,	4567,	3594,	949,	785],
 	[626,	0,	2332,	633,	596,	3594,	949,	3664],
@@ -89,7 +114,8 @@ function checkCost(dna){
 	}
 	return {
 		cost: totalCosts,
-		dna: dna
+		dna: dna,
+		inventory: inventory
 	};
 }
 
@@ -101,10 +127,9 @@ function createRandomDNA(){
 		production: [],
 		producing: [],
 	};
-	
-
+	var genes = shuffle(genePool.slice(0));
 	for( var i = 0; i < 32; i++ ){
-		dna.production.push( genePool.pop() );
+		dna.production.push( genes.pop() );
 		dna.producing[i] = true;
 	}
 	return dna;
@@ -139,6 +164,38 @@ function search(limit, best){
 
 
 function createChild(father, mother){
+
+	var child = {
+		production: [],
+		producing: []
+	};
+	var numbers = productionPool.slice(0);
+
+	for(var i = 0; i < father.production.length; i++){
+		for( var n = 1; n < 9; n++){
+			if(n == father.production[i]){
+				if(numbers[n-1] > 0){
+					numbers[n-1]--;
+					child.production.push(father.production[i]);
+				}
+			}
+			if(n == mother.production[i]){
+				if(numbers[n-1] > 0){
+					numbers[n-1]--;
+					child.production.push(mother.production[father.production.length-1-i]);
+				}
+			}
+		}
+	}
+
+	for(var i = 0; i < father.producing.length; i++){
+		child.producing[i] = father.producing[i];
+	}
+	return child;
+
+
+
+
 	var child = {
 		production: [],
 		producing: []
@@ -154,10 +211,17 @@ function createChild(father, mother){
 
 $(document).ready(function(){
 	var dna = createRandomDNA();
-	console.log(dna.production);
-	var sum = 0;
-	for(var i = 0; i < 8; i++){
-		sum += productionPool[i];
+	console.log(dna);
+	var population = [];
+	for(var p = 0; p < 2; p++){
+		population.push(createRandomDNA());
 	}
+	console.log(population);
+	child = createChild(population[0], population[1]);
+	console.log(checkCost(population[0]));
+	console.log(checkCost(population[1]));
+	console.log(checkCost(child));
+	child2 = createChild(population[1], population[0]);
+	console.log(checkCost(child2));
 });
 

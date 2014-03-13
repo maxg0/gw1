@@ -2,12 +2,20 @@
 <html>
 <head>
 	<script src="jquery.js"></script>
-	<script src="mtest.js"></script>
+	<script src="main.js"></script>
 </head>
 <body>
-	<input class="limit" type="text" value="1000" />
-	<button class="start-button">Start</button>
-	<button class="stop-button">Stop</button>
-	<progress class="progress-bar" value="0" max="100">0%</progress>
-	<span class="candidate"></span>
+	<label for="limit">Limit</label> <input name="limit" class="limit" type="text" value="10000" /><br>
+	<label for="pop">Population</label><input name="pop" class="pop" type="text" value="10" /><br>
+	<button class="ra-start-button">Start ra</button>
+	<button class="ra-stop-button">Stop ra</button>
+	<progress class="ra-bar" value="0" max="100">0%</progress>
+	<span class="ra-candidate"></span><br>
+	<label for="generations">Generations</label><input name="generations" class="generations" type="text" value="100" /><br>
+	<label for="mutation">Mutation</label><input name="mutation" class="mutation" type="text" value="1" /><br>
+	<button class="ga-start-button">Start ga</button>
+	<button class="ga-start-button">Stop ga</button>
+	<progress class="ga-bar" value="0" max="100">0%</progress>
+	<span class="ga-candidate"></span><br>
+	<span class="population"></span><br>
 </body>

@@ -1,3 +1,26 @@
+function shuffle(array) {
+	var currentIndex = array.length
+		, temporaryValue
+		, randomIndex
+		;
+
+	//While there remain elements to shuffle...
+	while (0 !== currentIndex) {
+
+		//Pick a remaining element...
+		randomIndex = Math.floor(Math.random() * currentIndex);
+		currentIndex -= 1;
+
+		//And swap it with the current element.
+		temporaryValue = array[currentIndex];
+		array[currentIndex] = array[randomIndex];
+		array[randomIndex] = temporaryValue;
+	}
+
+	return array;
+}
+
+
 var changeCosts = [
 	[0,	324,	2786,	0,	4567,	3594,	949,	785],
 	[626,	0,	2332,	633,	596,	3594,	949,	3664],
@@ -47,51 +70,6 @@ for(var i = 0; i < 8; i++){
 	}
 }
 
-function checkCost(dna){
-	var inventory = startInventory.slice(0); // x
-	var backlog   = [0,0,0,0,0,0,0,0]; // p
-	var inventoryHeld = [0,0,0,0,0,0,0,0]; // q
-	var costsOfStorage = 0;
-	var costsOfShortage = 0;
-	var totalCosts = 0;
-	for(var t = 0; t < 30; t++){
-
-		for(var order = 0; order < demand.length; order++){
-			// remove sales from inventory
-			inventory[order] -= demand[order][t];
-			// add to backlog and inventoryHeld
-			if(inventory[order] <= 0){
-				backlog[order] = Math.abs(inventory[order]);
-				inventoryHeld[order] = 0;
-			} else {
-				inventoryHeld[order] = inventory[order];
-				backlog[order] = 0;
-			}
-			// charge for backlog
-			totalCosts += backlog[order] * shortage;
-			costsOfShortage += backlog[order] * shortage;
-			// charge for storage
-			if(inventory[order] > 0){
-				totalCosts += inventory[order] * storage;
-			}
-		}
-		// produce more
-		if(dna.producing[t]){
-			inventory[producing-1] += production;
-		}
-		// charge for changing production
-		// TODO no charging if no production took place last time,
-		// so dont do this if dna.producing[t-1] is false(?)
-		totalCosts += changeCosts[producing-1][dna.production[t]-1];
-		// change production
-		producing = dna.production[t];
-		
-	}
-	return {
-		cost: totalCosts,
-		dna: dna
-	};
-}
 
 function random(min, max){
 	return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -101,9 +79,9 @@ function createRandomDNA(){
 		production: [],
 		producing: [],
 	};
-
+	var genes = shuffle(genePool.slice(0));
 	for( var i = 0; i < 32; i++ ){
-		dna.production[i] = genePool.splice(random(0,31), 1);
+		dna.production.push( genes.pop() );
 		dna.producing[i] = true;
 	}
 	return dna;
@@ -132,32 +110,54 @@ function search(limit, best){
 			checkpoint += limit/100;
 		}
 	}
+	postMessage(best);
 	return best;
 }
 
 
-function createChild(father, mother){
-	var child = {
-		production: [],
-		producing: []
-	};
-	for( var g = 0; g < father.production.length; g++){
-		child.production.push(father.production[g]);
-		child.production.push(mother.production[g]);
-	}
-	
-	return child;
+function dbg(obj){
+	postMessage({
+		'type': 'debug',
+		'debug': obj
+	});
 }
 
-
 self.addEventListener('message', function(e){
+	self.importScripts('cost.js');
+	postMessage(e.data.command);
+	switch( e.data.command ) {
+		case 'start':
+			var limit = parseInt(e.data.limit);
+			var rounds = parseInt(e.data.pop);
+			var checkpoint = 0;
+ 
+			dbg(rounds);
+			for(var r = 0; r < rounds; r++){
+				var dna = createRandomDNA();
+				var best = checkCost(dna);
+				for(var s = 0; s < 100; s++){
+					best = search(limit/100, best);
+					postMessage({
+						'type': 'update',
+						'best' : best
+					});
+				}
+				postMessage({
+					'type':'done',
+					'best' : best
+				});
+			}
+			postMessage({
+				'type':'stopping',
+			});
+		break;
+		case 'stop':
+			self.postMessage({
+				'type' : 'debug',  
+				"debug": "stopping"
+			});
+			self.close();
+		break;
+	};
 	//postMessage(productionPool);
-	var dna = createRandomDNA();
-	var best = checkCost(dna);
-	var limit = parseInt(e.data);
-	var checkpoint = 0;
-	for(var s = 0; s < 100; s++){
-		best = search(limit/100, best);
-	}
-	postMessage(best);
 },500);
