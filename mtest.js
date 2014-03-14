@@ -50,10 +50,6 @@ var producing = 8;
 var extraInventory = 1000;
 var startInventory = [ 2571, 1182, 3350, 1978, 1121, 3011, 1554, 2469]; // x
 
-for(var e = 0; e < demand.length; e++){
-	demand[e][demand[e].length-1] += extraInventory;
-}
-
 var productionPool = [];
 var productionMinimum = getProductionMinimum();
 var extra = 0;
@@ -62,7 +58,7 @@ for(var f = 0; f < productionMinimum.length; f++){
 	productionPool[f] = Math.ceil(productionPool[f]);
 	extra = productionPool[f] * production - productionMinimum[f];
 	if( extra < 1000){
-		productionMinimum[f] += extra;
+		productionMinimum[f] += 1000 - extra;
 	}
 }
 var genePool = [];
@@ -73,14 +69,23 @@ for(var i = 0; i < 8; i++){
 }
 
 function checkCost(dna){
+	producing = 8;
 	var inventory = startInventory.slice(0); // x
 	var backlog   = [0,0,0,0,0,0,0,0]; // p
 	var inventoryHeld = [0,0,0,0,0,0,0,0]; // q
-	var costsOfStorage = 0;
-	var costsOfShortage = 0;
+	var storageCosts = 0;
+	var shortageCosts = 0;
+	var setupCosts = 0;
 	var totalCosts = 0;
-	for(var t = 0; t < 30; t++){
-
+	var thisRound = 0;
+	for(var t = 0; t < 31; t++){
+		// change production
+		producing = dna.production[t];
+		// produce more
+		if(producing != 0){
+			inventory[producing-1] += production;
+		}
+		totalCosts = storageCosts + shortageCosts + setupCosts;
 		for(var order = 0; order < demand.length; order++){
 			// remove sales from inventory
 			inventory[order] -= demand[order][t];
@@ -93,28 +98,29 @@ function checkCost(dna){
 				backlog[order] = 0;
 			}
 			// charge for backlog
-			totalCosts += backlog[order] * shortage;
-			costsOfShortage += backlog[order] * shortage;
+			if(inventory[order] < 0){
+				shortageCosts += (backlog[order] * shortage);
+			}
 			// charge for storage
 			if(inventory[order] > 0){
-				totalCosts += inventory[order] * storage;
+				storageCosts += (inventoryHeld[order] * storage);
 			}
-		}
-		// produce more
-		if(dna.producing[t]){
-			inventory[producing-1] += production;
 		}
 		// charge for changing production
 		// TODO no charging if no production took place last time,
 		// so dont do this if dna.producing[t-1] is false(?)
-		totalCosts += changeCosts[producing-1][dna.production[t]-1];
-		// change production
-		producing = dna.production[t];
-		
+		if(t >= 1){
+			if(dna.production[t] != 0 && dna.production[t-1] != 0){
+				setupCosts += changeCosts[dna.production[t-1]-1][dna.production[t]-1];
+			}
+		}
 	}
 	return {
-		cost: totalCosts,
-		dna: dna,
+		"cost": totalCosts,
+		"storageCosts": storageCosts,
+		"shortageCosts": shortageCosts,
+		"setupCosts": setupCosts,
+		"dna": dna,
 		inventory: inventory
 	};
 }
@@ -188,40 +194,21 @@ function createChild(father, mother){
 		}
 	}
 
-	for(var i = 0; i < father.producing.length; i++){
-		child.producing[i] = father.producing[i];
-	}
-	return child;
-
-
-
-
-	var child = {
-		production: [],
-		producing: []
-	};
-	for( var g = 0; g < father.production.length; g++){
-		child.production.push(father.production[g]);
-		child.production.push(mother.production[g]);
-	}
-	
 	return child;
 }
 
 
 $(document).ready(function(){
+		/*
+	var dna = {production:[1,7,3,3,8,6,6,5,2,4,1,3,3,4,8,8,6,8,1,7,3,3,2,4,1,8,6,6,6,5]};
+	console.log(checkCost(dna));
+	var dna = { production: [6,2,4,7,3,3,1,1,8,6,8,6,2,1,1,7,3,3,4,4,5,0,8,8,6,6,8,2,3,3]};
+	console.log(checkCost(dna));
 	var dna = createRandomDNA();
-	console.log(dna);
-	var population = [];
-	for(var p = 0; p < 2; p++){
-		population.push(createRandomDNA());
-	}
-	console.log(population);
-	child = createChild(population[0], population[1]);
-	console.log(checkCost(population[0]));
-	console.log(checkCost(population[1]));
-	console.log(checkCost(child));
-	child2 = createChild(population[1], population[0]);
-	console.log(checkCost(child2));
+	console.log(checkCost(dna));
+	console.log(dna.production.sort());
+	console.log(genePool);
+	*/
+	console.log(checkCost({production:[8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8]}));
 });
 
