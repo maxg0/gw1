@@ -1,4 +1,3 @@
-
 function createChild(father, mother){
 	var child = {
 		production: [],
@@ -23,14 +22,9 @@ function createChild(father, mother){
 		}
 	}
 
-	for(var i = 0; i < father.producing.length; i++){
-		child.producing[i] = father.producing[i];
-	}
-
 	// Mutation
-
-	var a = random(0,31);
-	var b = random(0,31);
+	var a = random(0,36);
+	var b = random(0,36);
 	var tmp = child.production[a];
 	child.production[a] = child.production[b];
 	child.production[b] = tmp;
@@ -45,6 +39,7 @@ function dbg(obj){
 
 function selection(population, generations){
 	var child;
+	var best = {cost: 200000};
 	for(var g = 0; g < generations; g++){
 		for(var m = 0; m < population.length; m++){
 			for(var f = 0; f < population.length; f++){
@@ -58,11 +53,14 @@ function selection(population, generations){
 					dbg(population[m].cost + " mmt "+ child.cost);
 					population.push(child);
 				}
+				if(child.cost < best.cost){
+					best = child;
+				}
 			}
 		}
 		self.postMessage({
-			'type' : 'update'
-			
+			'type' : 'update',
+			'best' : best
 		});
 	}
 	return population;

@@ -1,4 +1,4 @@
-
+var allTimeBest = [];
 $(document).ready(function(){
 	var raWorker;
 	var gaWorker;
@@ -19,7 +19,14 @@ $(document).ready(function(){
 					raProgress = 0;
 				break;
 				case 'stopping':
-					console.log(population);
+					//console.log(population);
+					allTimeBest = population[0];
+					for(var b = 0; b < population.length; b++){
+						if(population[b].cost < allTimeBest.cost){
+							allTimeBest = population[b];
+						}
+					}
+					$('.all-time-best').text(allTimeBest.cost + " " + allTimeBest.dna.production);
 				break;
 				case 'debug':
 					console.log(e.data.debug);
@@ -50,6 +57,7 @@ $(document).ready(function(){
 			switch( e.data.type ){
 				case 'update':
 					$('.ga-bar').val(100*(++gaProgress/generations));
+					$('.ga-candidate').text(e.data.best.cost +" "+ e.data.best.production); 
 				break;
 				case 'debug':
 					console.log(e.data.debug);

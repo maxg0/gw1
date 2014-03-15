@@ -69,20 +69,19 @@ for(var i = 0; i < 8; i++){
 		genePool.push(i+1);
 	}
 }
-
-
+for(var i = 0; i < 5; i++){
+	genePool.push(0);
+}
 function random(min, max){
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 function createRandomDNA(){
 	var dna = {
 		production: [],
-		producing: [],
 	};
 	var genes = shuffle(genePool.slice(0));
 	for( var i = 0; i < 32; i++ ){
 		dna.production.push( genes.pop() );
-		dna.producing[i] = true;
 	}
 	return dna;
 }
@@ -123,15 +122,15 @@ function dbg(obj){
 }
 
 self.addEventListener('message', function(e){
+	postMessage(genePool);
 	self.importScripts('cost.js');
-	postMessage(e.data.command);
+	dbg(genePool);
 	switch( e.data.command ) {
 		case 'start':
 			var limit = parseInt(e.data.limit);
 			var rounds = parseInt(e.data.pop);
 			var checkpoint = 0;
- 
-			dbg(rounds);
+			dbg("hello");
 			for(var r = 0; r < rounds; r++){
 				var dna = createRandomDNA();
 				var best = checkCost(dna);

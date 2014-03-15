@@ -43,6 +43,8 @@ var demand = [
 	[1512,0,0,0,786,0,836,0,0,1211,0,0,725,0,0,2105,0,806,0,0,0,0,0,655,0,2045,0,780,0,0],
 	[0,0,1331,2898,1212,0,1045,816,0,0,454,0,0,3567,2554,578,1996,0,0,0,0,3755,0,0,2663,888,2100,0,0,0]
 ];
+
+
 var shortage = 0.25;
 var storage = 0.025;
 var production = 5000;
@@ -58,7 +60,7 @@ for(var f = 0; f < productionMinimum.length; f++){
 	productionPool[f] = Math.ceil(productionPool[f]);
 	extra = productionPool[f] * production - productionMinimum[f];
 	if( extra < 1000){
-		productionMinimum[f] += 1000 - extra;
+		productionMinimum[f] += extraInventory - extra;
 	}
 }
 var genePool = [];
@@ -78,14 +80,14 @@ function checkCost(dna){
 	var setupCosts = 0;
 	var totalCosts = 0;
 	var thisRound = 0;
-	for(var t = 0; t < 31; t++){
+
+	for(var t = 0; t < 30; t++){
 		// change production
 		producing = dna.production[t];
 		// produce more
 		if(producing != 0){
 			inventory[producing-1] += production;
 		}
-		totalCosts = storageCosts + shortageCosts + setupCosts;
 		for(var order = 0; order < demand.length; order++){
 			// remove sales from inventory
 			inventory[order] -= demand[order][t];
@@ -107,21 +109,18 @@ function checkCost(dna){
 			}
 		}
 		// charge for changing production
-		// TODO no charging if no production took place last time,
-		// so dont do this if dna.producing[t-1] is false(?)
-		if(t >= 1){
-			if(dna.production[t] != 0 && dna.production[t-1] != 0){
+		if(dna.production[t] != 0 && dna.production[t-1] != 0){
+			if(t >= 1){
 				setupCosts += changeCosts[dna.production[t-1]-1][dna.production[t]-1];
+			} else {
+				setupCosts += changeCosts[7][dna.production[t]-1];
 			}
 		}
 	}
+	totalCosts = storageCosts + shortageCosts + setupCosts;
 	return {
 		"cost": totalCosts,
-		"storageCosts": storageCosts,
-		"shortageCosts": shortageCosts,
-		"setupCosts": setupCosts,
-		"dna": dna,
-		inventory: inventory
+		"dna": dna
 	};
 }
 
@@ -141,15 +140,15 @@ function createRandomDNA(){
 	return dna;
 }
 function getProductionMinimum(){
-	var limits = [];
+	var lim = [];
 	for(var i = 0; i < demand.length; i++) {
 		var minProduction = 0;
 		for(var w = 0; w < demand[i].length; w++){
 			minProduction += demand[i][w];
 		}
-	limits[i] = minProduction - startInventory[i];
+	lim[i] = minProduction - startInventory[i];
 	}
-	return limits;
+	return lim;
 }
 
 function search(limit, best){
@@ -202,13 +201,17 @@ $(document).ready(function(){
 		/*
 	var dna = {production:[1,7,3,3,8,6,6,5,2,4,1,3,3,4,8,8,6,8,1,7,3,3,2,4,1,8,6,6,6,5]};
 	console.log(checkCost(dna));
-	var dna = { production: [6,2,4,7,3,3,1,1,8,6,8,6,2,1,1,7,3,3,4,4,5,0,8,8,6,6,8,2,3,3]};
 	console.log(checkCost(dna));
 	var dna = createRandomDNA();
 	console.log(checkCost(dna));
 	console.log(dna.production.sort());
 	console.log(genePool);
-	*/
 	console.log(checkCost({production:[8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8]}));
+	*/
+	
+	var dna = { production: [6,2,4,7,3,3,1,1,8,6,8,6,2,1,1,7,3,3,4,4,5,0,8,8,6,6,8,2,3,3]};
+	console.log(checkCost(dna));
+	//console.log(checkCost({production:[1,1,2,3,4,4,4,1,4,6,5,0,4,3,3,5,3,2,1,4,1,4,1,7,7,0,3,7,7,0]}));
+
 });
 
